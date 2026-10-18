@@ -1,0 +1,20 @@
+{
+  "title": "Salotto",
+  "rows": [
+    {
+      "name": "App",
+      "items": [
+        { "name": "RaiPlay", "subtitle": "Dirette e on demand Rai", "url": "https://www.raiplay.it/", "color": "#0b4ea2", "glyph": "R" },
+        { "name": "YouTube", "subtitle": "Interfaccia TV (può non funzionare in tutti i browser)", "url": "https://www.youtube.com/tv", "color": "#c4302b", "glyph": "▶" },
+        { "name": "Plex", "subtitle": "La tua libreria multimediale", "url": "https://app.plex.tv/desktop", "color": "#1f1f1f", "glyph": "P" },
+        { "name": "Jellyfin", "subtitle": "Sostituisci con l'indirizzo del tuo server", "url": "http://192.168.1.10:8096/", "color": "#5a2a82", "glyph": "J" }
+      ]
+    },
+    {
+      "name": "Sistema",
+      "items": [
+        { "name": "Info sistema", "subtitle": "Funzioni VIDAA disponibili su questo firmware", "action": "diagnostics", "color": "#2c2c2e", "glyph": "i" }
+      ]
+    }
+  ]
+}

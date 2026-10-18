@@ -63,6 +63,18 @@ limitations, and a verification status:
 | S-43 | [camellan/vidaa-appstore](https://github.com/camellan/vidaa-appstore) | Sideload path via JS `Hisense_installApp`; availability is firmware-version dependent | PLAUSIBLE |
 | S-44 | [Jellyfin forum — install on VIDAA thread](https://forum.jellyfin.org/t-install-jellyfin-on-vidaaos-based-tv-hisense-sharp-toshiba-etc) | Field reports that `Hisense_installApp` appears/disappears across firmware (N0519 works, P0603 missing, O0904 works) | UNVERIFIED (forum) |
 
+## Cleaning up VIDAA (ads, privacy, custom launcher)
+
+| ID | Source | Relevance | Status |
+|----|--------|-----------|--------|
+| S-50 | [SmartWorld — pubblicità non saltabili su TV Hisense](https://www.smartworld.it/tecnologia/hisense-vidaa-tv-pubblicita-obbligatoria.html) | Ads at power-on / HDMI switch; settings toggle reportedly not always effective; Nexxen ad partner with ACR access | PLAUSIBLE (press, user reports) |
+| S-51 | [TechSpot — Hisense TVs showing non-skippable ads](https://www.techspot.com/news/111653-hisense-tvs-caught-showing-non-skippable-ads-when.html) | Reports beyond Spain; VIDAA renamed Home OS, also on Akai/Schneider/Loewe | PLAUSIBLE |
+| S-52 | [Lemmy thread (piefed mirror) on TV ads](https://piefed.jeena.net/post/385585) | User report: DNS blocking on VIDAA leaves a "VIDAA" placeholder in the home ad slot | UNVERIFIED (single user) |
+| S-53 | [Xataka Home — Hisense: "prueba temporal"](https://www.xatakahome.com/televisores/se-trato-prueba-temporal-hisense-aclara-polemica-anuncios-sus-televisores-espana) | Hisense statement that forced ads were a temporary test in Spain | VERIFIED (company statement as reported) |
+| S-54 | [Tech-ish — how to block Hisense ads](https://tech-ish.com/2026/03/17/hisense-is-testing-unskippable-ads-on-its-tvs-heres-how-to-block-them/) | AdGuard public DNS 94.140.14.14 / 94.140.15.15; already-downloaded ads persist | PLAUSIBLE |
+| S-55 | [LazyAdmin — block ads on your smart TV](https://lazyadmin.nl/home-network/how-to-block-ads-on-your-smart-tv/) | Domain lists for Samsung/LG/Roku, none for VIDAA | VERIFIED (absence of a VIDAA list) |
+| S-56 | [Microimpuls — Hisense VIDAA debug guide](https://microimpuls.com/en/docs/smarty/extra/hisense-vidaa-debug-guide) | `hisense://debug` in the TV browser installs a web app by URL; no firmware versions stated | PLAUSIBLE (third-party docs) |
+
 ## To still acquire (non-invasive)
 
 - S-04 full parse of the EU datasheet (HDMI count, eARC, VRR/ALLM, HDR formats, tuner types).

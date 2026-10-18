@@ -39,7 +39,9 @@ research/   hardware · firmware · github-findings · bootloader · android-com
 architecture/ native-port(A) · hybrid-port(B, recommended) · dual-boot(C) · oem-compatibility(OCL)
 compatibility/ oem-feature-matrix   ← per-feature preservability A/B/C
 android/    HisenseOcl               ← OCL implemented: Android TV TvInputService (Hybrid B)
+vidaa-launcher/                      ← Apple-TV-style launcher, runs as a VIDAA web app
 tools/      vidaa_probe.py (READ-ONLY) · run_android_tests.sh · check_android_build.sh
+            serve_launcher.sh · run_launcher_tests.sh
 poc/        emulation-first PoCs     ← nothing touches the TV flash
 docs/       roadmap · blockers · recovery-plan
 SOURCES.md  every source, with status + limitations
@@ -62,6 +64,13 @@ credentials are UNVERIFIED on the E7Q Pro, so probe read-only first.
 4. [`architecture/hybrid-port.md`](architecture/hybrid-port.md) — the recommended route.
 5. [`compatibility/oem-feature-matrix.md`](compatibility/oem-feature-matrix.md) — feature-by-feature.
 6. [`docs/roadmap.md`](docs/roadmap.md) + [`docs/blockers.md`](docs/blockers.md) + [`docs/recovery-plan.md`](docs/recovery-plan.md).
+
+## Cleaning up VIDAA instead of replacing it
+If the goal is a cleaner TV rather than Android: [`docs/clean-vidaa.md`](docs/clean-vidaa.md)
+covers privacy/ad settings and network-level ad blocking, and
+[`vidaa-launcher/`](vidaa-launcher/) is an Apple-TV-style launcher installable as a
+VIDAA web app (tested in headless Chromium, not yet on the TV). Uninstalling system
+apps or replacing the boot home screen is not possible without modifying firmware.
 
 ## What you can do safely today
 - Run the read-only probe to collect real device facts:

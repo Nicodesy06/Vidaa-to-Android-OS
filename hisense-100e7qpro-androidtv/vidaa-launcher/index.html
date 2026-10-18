@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salotto</title>
+<style>
+  /* Designed for a 16:9 TV viewport; every size is in vw so 1280x720 and
+     1920x1080 browser surfaces render the same layout. TV is dark-only. */
+  :root {
+    --bg: #000;
+    --text: #f5f5f7;
+    --text-2: #a1a1a6;
+    --tile-radius: 1.1vw;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur: 300ms;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
+                 Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Two stacked tint layers crossfade when focus moves to a tile of another colour. */
+  .backdrop {
+    position: fixed; inset: 0; opacity: 0;
+    transition: opacity 600ms var(--ease);
+  }
+  .backdrop.on { opacity: 1; }
+  .vignette {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 55%, #000 100%);
+  }
+
+  header {
+    position: fixed; top: 3.2vw; left: 5vw; right: 5vw;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 1.25vw; color: var(--text-2); letter-spacing: .01em;
+  }
+  header .brand { color: var(--text); font-weight: 600; }
+  header .clock { font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; }
+
+  .hero {
+    position: fixed; left: 5vw; top: 13vw; width: 60vw;
+  }
+  .hero h1 {
+    font-size: 4.6vw; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05;
+  }
+  .hero p {
+    margin-top: 1vw; font-size: 1.5vw; color: var(--text-2); line-height: 1.4;
+    min-height: 2.1vw;
+  }
+  .hero .swap { animation: rise 400ms var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(.8vw); } to { opacity: 1; transform: none; } }
+
+  .rows {
+    position: fixed; left: 0; right: 0; top: 26vw;
+    transition: transform 450ms var(--ease);
+  }
+  .row { padding-left: 5vw; margin-bottom: 3.6vw; }
+  .row h2 {
+    font-size: 1.2vw; font-weight: 600; color: var(--text-2);
+    margin-bottom: 1vw; letter-spacing: .02em;
+    transition: color var(--dur) var(--ease);
+  }
+  .row.active h2 { color: var(--text); }
+  .tiles {
+    display: flex; gap: 2vw; transition: transform 450ms var(--ease);
+  }
+  .tile {
+    flex: 0 0 auto; width: 17vw; height: 10.2vw; border-radius: var(--tile-radius);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 .4vw 1.2vw rgba(0,0,0,.35);
+    transform: scale(1);
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .tile::after {
+    /* Specular sheen, like the Apple TV focus highlight. */
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 45%);
+    opacity: .5; transition: opacity var(--dur) var(--ease);
+  }
+  .tile .glyph { font-size: 4vw; font-weight: 700; color: rgba(255,255,255,.95); }
+  .tile-wrap { position: relative; }
+  .tile-wrap .label {
+    position: absolute; left: 0; right: 0; top: 11.4vw;
+    text-align: center; font-size: 1.1vw; color: var(--text);
+    opacity: 0; transition: opacity var(--dur) var(--ease);
+  }
+  .tile-wrap.focused .tile {
+    transform: scale(1.12);
+    box-shadow: 0 1.6vw 3.2vw rgba(0,0,0,.6), 0 0 0 .18vw rgba(255,255,255,.85);
+  }
+  .tile-wrap.focused .tile::after { opacity: 1; }
+  .tile-wrap.focused .label { opacity: 1; }
+
+  .panel {
+    position: fixed; inset: 6vw 10vw; z-index: 10; border-radius: 1.6vw; padding: 3vw;
+    background: #1c1c1e;
+    border: 1px solid rgba(255,255,255,.1);
+    /* The huge spread doubles as a scrim that dims the launcher behind the dialog. */
+    box-shadow: 0 2vw 6vw rgba(0,0,0,.7), 0 0 0 100vmax rgba(0,0,0,.7);
+    overflow: hidden; display: none;
+  }
+  .panel.open { display: block; animation: rise 350ms var(--ease); }
+  .panel h2 { font-size: 2.2vw; font-weight: 700; margin-bottom: .6vw; }
+  .panel .hint { font-size: 1.1vw; color: var(--text-2); margin-bottom: 1.6vw; }
+  .panel pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 1vw; line-height: 1.5;
+    color: var(--text); white-space: pre-wrap; word-break: break-all;
+    max-height: 30vw; overflow: hidden;
+  }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 4vw; z-index: 20; transform: translate(-50%, 2vw);
+    padding: 1vw 2vw; border-radius: 99vw; font-size: 1.2vw;
+    background: rgba(44,44,46,.95); color: var(--text);
+    opacity: 0; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 1ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="backdrop" id="bgA"></div>
+  <div class="backdrop" id="bgB"></div>
+  <div class="vignette"></div>
+
+  <header>
+    <span class="brand" id="title">Salotto</span>
+    <span class="clock" id="clock"></span>
+  </header>
+
+  <section class="hero" aria-live="polite">
+    <h1 id="heroName"></h1>
+    <p id="heroSub"></p>
+  </section>
+
+  <main class="rows" id="rows"></main>
+
+  <section class="panel" id="diag" role="dialog" aria-label="Info sistema">
+    <h2>Info sistema</h2>
+    <p class="hint">Solo lettura: elenca cosa espone il browser di questo televisore. Premi Indietro per chiudere.</p>
+    <pre id="diagOut"></pre>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Used when apps.json cannot be loaded (e.g. opened from a file).
+  var DEFAULT_CONFIG = {
+    title: "Salotto",
+    rows: [
+      { name: "App", items: [
+        { name: "RaiPlay", subtitle: "Dirette e on demand Rai", url: "https://www.raiplay.it/", color: "#0b4ea2", glyph: "R" }
+      ]},
+      { name: "Sistema", items: [
+        { name: "Info sistema", subtitle: "Funzioni VIDAA disponibili su questo firmware", action: "diagnostics", color: "#2c2c2e", glyph: "i" }
+      ]}
+    ]
+  };
+
+  // Remote keys. VIDAA's Back key code varies by build, so several are accepted.
+  var KEY = { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, OK: 13 };
+  var BACK_KEYS = [8, 27, 461, 10009];
+  var STORE_KEY = "salotto.focus";
+
+  var config, rowEls = [], focus = { row: 0, col: 0 }, bgFront = "bgA";
+  var diagOpen = false, toastTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function loadConfig(done) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "apps.json", true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var parsed = null;
+      if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
+        try { parsed = JSON.parse(xhr.responseText); } catch (e) { parsed = null; }
+      }
+      done(parsed && parsed.rows ? parsed : DEFAULT_CONFIG);
+    };
+    try { xhr.send(); } catch (e) { done(DEFAULT_CONFIG); }
+  }
+
+  function render() {
+    $("title").textContent = config.title || "Salotto";
+    document.title = config.title || "Salotto";
+    var rows = $("rows");
+    rows.innerHTML = "";
+    rowEls = [];
+    config.rows.forEach(function (row, r) {
+      var section = document.createElement("section");
+      section.className = "row";
+      var h = document.createElement("h2");
+      h.textContent = row.name;
+      var tiles = document.createElement("div");
+      tiles.className = "tiles";
+      row.items.forEach(function (item, c) {
+        var wrap = document.createElement("div");
+        wrap.className = "tile-wrap";
+        wrap.setAttribute("role", "button");
+        wrap.setAttribute("aria-label", item.name);
+        var tile = document.createElement("div");
+        tile.className = "tile";
+        tile.style.background = tileGradient(item.color || "#2c2c2e");
+        var glyph = document.createElement("span");
+        glyph.className = "glyph";
+        glyph.textContent = item.glyph || item.name.charAt(0);
+        tile.appendChild(glyph);
+        var label = document.createElement("span");
+        label.className = "label";
+        label.textContent = item.name;
+        wrap.appendChild(tile);
+        wrap.appendChild(label);
+        wrap.addEventListener("click", function () { setFocus(r, c); activate(); });
+        tiles.appendChild(wrap);
+      });
+      section.appendChild(h);
+      section.appendChild(tiles);
+      rows.appendChild(section);
+      rowEls.push({ section: section, tiles: tiles });
+    });
+  }
+
+  function tileGradient(hex) {
+    return "linear-gradient(160deg, " + shade(hex, 0.18) + " 0%, " + hex + " 55%, " + shade(hex, -0.35) + " 100%)";
+  }
+
+  // Lightens (amt > 0) or darkens (amt < 0) a #rrggbb colour.
+  function shade(hex, amt) {
+    var n = parseInt(hex.replace("#", ""), 16);
+    var parts = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) {
+      var t = amt > 0 ? v + (255 - v) * amt : v * (1 + amt);
+      return Math.max(0, Math.min(255, Math.round(t)));
+    });
+    return "rgb(" + parts.join(",") + ")";
+  }
+
+  function current() { return config.rows[focus.row].items[focus.col]; }
+
+  function setFocus(r, c) {
+    r = Math.max(0, Math.min(config.rows.length - 1, r));
+    c = Math.max(0, Math.min(config.rows[r].items.length - 1, c));
+    focus = { row: r, col: c };
+    rowEls.forEach(function (re, ri) {
+      re.section.className = "row" + (ri === r ? " active" : "");
+      var wraps = re.tiles.children;
+      for (var i = 0; i < wraps.length; i++) {
+        wraps[i].className = "tile-wrap" + (ri === r && i === c ? " focused" : "");
+      }
+    });
+    scrollIntoView();
+    updateHero();
+    updateBackdrop(current().color || "#2c2c2e");
+    try { localStorage.setItem(STORE_KEY, r + "," + c); } catch (e) { /* storage may be unavailable */ }
+  }
+
+  // Keeps the focused tile on screen: rows slide up, the active row slides left.
+  function scrollIntoView() {
+    var vw = window.innerWidth / 100;
+    var rowHeight = 16.3 * vw; // h2 + tile + row margin, keep in sync with CSS
+    $("rows").style.transform = "translateY(" + (-Math.max(0, focus.row - 1) * rowHeight) + "px)";
+    var tileStep = 19 * vw;
+    var visible = Math.floor(90 / 19);
+    var shift = Math.max(0, focus.col - visible + 1) * tileStep;
+    rowEls[focus.row].tiles.style.transform = "translateX(" + (-shift) + "px)";
+  }
+
+  function updateHero() {
+    var item = current();
+    var name = $("heroName"), sub = $("heroSub");
+    name.textContent = item.name;
+    sub.textContent = item.subtitle || "";
+    [name, sub].forEach(function (el) {
+      el.classList.remove("swap");
+      void el.offsetWidth; // restart the entrance animation
+      el.classList.add("swap");
+    });
+  }
+
+  function updateBackdrop(hex) {
+    var back = bgFront === "bgA" ? "bgB" : "bgA";
+    $(back).style.background =
+      "radial-gradient(120% 90% at 20% 0%, " + shade(hex, -0.1) + " 0%, " + shade(hex, -0.7) + " 55%, #000 100%)";
+    $(back).classList.add("on");
+    $(bgFront).classList.remove("on");
+    bgFront = back;
+  }
+
+  function activate() {
+    var item = current();
+    if (item.action === "diagnostics") { openDiagnostics(); return; }
+    if (item.url) {
+      toast("Apertura di " + item.name + "…");
+      setTimeout(function () { window.location.href = item.url; }, 250);
+      return;
+    }
+    toast("Nessuna azione configurata per " + item.name);
+  }
+
+  // Lists vendor objects exposed to web apps without calling any of them.
+  function openDiagnostics() {
+    var pattern = /hisense|vidaa|^(omi_|opera|hbbtv|oipf)/i;
+    var names = {};
+    try {
+      Object.getOwnPropertyNames(window).forEach(function (k) { names[k] = true; });
+    } catch (e) { /* some engines restrict enumeration */ }
+    for (var k in window) { names[k] = true; }
+    var found = Object.keys(names).filter(function (k) { return pattern.test(k); }).sort();
+    var lines = [
+      "User agent:   " + navigator.userAgent,
+      "Viewport:     " + window.innerWidth + " x " + window.innerHeight + " @ " + (window.devicePixelRatio || 1) + "x",
+      "Lingua:       " + (navigator.language || "?"),
+      "",
+      "Oggetti/funzioni del produttore trovati (" + found.length + "):"
+    ];
+    found.forEach(function (k) {
+      var t;
+      try { t = typeof window[k]; } catch (e) { t = "inaccessibile"; }
+      lines.push("  " + k + "  (" + t + ")");
+    });
+    if (!found.length) lines.push("  nessuno");
+    $("diagOut").textContent = lines.join("\n");
+    $("diag").className = "panel open";
+    diagOpen = true;
+  }
+
+  function closeDiagnostics() {
+    $("diag").className = "panel";
+    diagOpen = false;
+  }
+
+  function toast(msg) {
+    var el = $("toast");
+    el.textContent = msg;
+    el.className = "toast show";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = "toast"; }, 2200);
+  }
+
+  function tickClock() {
+    var d = new Date();
+    var hh = ("0" + d.getHours()).slice(-2), mm = ("0" + d.getMinutes()).slice(-2);
+    $("clock").textContent = hh + ":" + mm;
+  }
+
+  function onKey(e) {
+    var code = e.keyCode;
+    if (diagOpen) {
+      if (BACK_KEYS.indexOf(code) >= 0 || code === KEY.OK) { closeDiagnostics(); e.preventDefault(); }
+      return;
+    }
+    switch (code) {
+      case KEY.LEFT: setFocus(focus.row, focus.col - 1); break;
+      case KEY.RIGHT: setFocus(focus.row, focus.col + 1); break;
+      case KEY.UP: setFocus(focus.row - 1, focus.col); break;
+      case KEY.DOWN: setFocus(focus.row + 1, focus.col); break;
+      case KEY.OK: activate(); break;
+      default:
+        // Back on the launcher itself does nothing: there is nowhere to go back to.
+        if (BACK_KEYS.indexOf(code) < 0) return;
+    }
+    e.preventDefault();
+  }
+
+  function restoreFocus() {
+    try {
+      var saved = (localStorage.getItem(STORE_KEY) || "").split(",");
+      if (saved.length === 2) return { row: +saved[0] || 0, col: +saved[1] || 0 };
+    } catch (e) { /* storage may be unavailable */ }
+    return { row: 0, col: 0 };
+  }
+
+  loadConfig(function (cfg) {
+    config = cfg;
+    render();
+    var f = restoreFocus();
+    setFocus(f.row, f.col);
+    tickClock();
+    setInterval(tickClock, 15000);
+    document.addEventListener("keydown", onKey);
+  });
+})();
+</script>
+</body>
+</html>
