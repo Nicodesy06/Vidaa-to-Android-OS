@@ -1,0 +1,10 @@
+// OEM Compatibility Layer for the Hisense 100E7Q PRO: exposes the panel's
+// sources (HDMI 1-4, tuner) as an Android TV input. Build in an AOSP tree with:
+//   m HisenseOcl
+android_app {
+    name: "HisenseOcl",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    sdk_version: "current",
+    product_specific: true,
+}

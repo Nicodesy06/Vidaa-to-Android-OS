@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sorgenti Hisense</string>
+    <string name="host_hint">Indirizzo IP del televisore</string>
+    <string name="pin_hint">PIN mostrato sul televisore</string>
+    <string name="connect">Connetti e importa sorgenti</string>
+    <string name="send_pin">Invia PIN</string>
+    <string name="status_connecting">Connessione in corso…</string>
+    <string name="status_synced">%1$d sorgenti importate</string>
+    <string name="status_error">Errore: %1$s</string>
+</resources>

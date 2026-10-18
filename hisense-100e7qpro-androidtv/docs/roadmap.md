@@ -28,11 +28,16 @@ the next phase until the gate is green. Phases 1–3 carry **zero device risk**.
   continue Hybrid-B only.
 
 ## Phase 3b — Hybrid B0 deliverable  *(zero risk, do in parallel from now)*
-- [ ] Harden [`../tools/vidaa_probe.py`](../tools/vidaa_probe.py) (read-only MQTT).
-- [ ] Map the real input/source list + key set from the device.
-- [ ] Prototype an Android-launcher ↔ OCL input/power/volume bridge (control plane).
+- [x] Read-only MQTT probe [`../tools/vidaa_probe.py`](../tools/vidaa_probe.py).
+- [x] Implement the OCL as a real Android TV `TvInputService` with a swappable
+      backend — [`../android/`](../android/) (`HisenseOcl`).
+- [x] Verify off-device: JVM protocol test vs a fake broker + Android-14 framework
+      type-check (`../tools/run_android_tests.sh`, `../tools/check_android_build.sh`).
+- [ ] Map the real input/source list + key set from the device (needs the TV).
+- [ ] Build the APK in an AOSP tree / with the Android SDK and sideload-test it.
 - **Outcome:** Android-TV front-end that switches real HDMI sources + controls
   panel/volume/power via OEM control, VIDAA untouched. The honest "works now" result.
+  *Code exists and passes off-device checks; on-device validation is the open step.*
 
 ## Phase 4 — Android TV bring-up  *(emulation first; only if Phase 3 gate green)*
 - [ ] Choose AOSP TV target matching the kernel (11/12 for 5.4; 13/14 for 5.15).

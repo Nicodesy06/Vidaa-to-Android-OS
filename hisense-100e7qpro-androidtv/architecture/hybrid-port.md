@@ -62,3 +62,14 @@ and CEC; run an Android TV *environment* as the primary UI; bridge the two with 
 - **B0: HIGH** (deliverable now). **B1: MEDIUM** (depends on dev-mode/exec).
 - **B2: LOW–MEDIUM** (depends on reflash + driver ABI). Recommended sequence:
   **B0 now → characterise exec surface → B1 → only then weigh B2.**
+
+## Implementation status (this repo)
+The B0/B1 OEM Compatibility Layer is **implemented and tested off-device** in
+[`../android/`](../android/): an Android TV `TvInputService` (`HisenseOcl`) that
+imports the panel's sources as channels and switches inputs / forwards keys over the
+MQTT control plane. It is a real `android_app` module (`Android.bp`) with a
+dependency-free MQTT client. Verified by (a) a JVM protocol test against a scripted
+fake broker and (b) a type-check against the real Android 14 framework — see
+[`../android/README.md`](../android/README.md). The `TvControlBackend` seam lets the
+same app gain a native-HAL backend later (B2) without UI/logic changes. **Not yet run
+on the TV** (credentials/port UNVERIFIED on the E7Q Pro — probe first).

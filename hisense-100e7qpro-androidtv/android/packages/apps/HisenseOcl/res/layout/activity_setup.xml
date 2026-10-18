@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="48dp">
+
+    <EditText
+        android:id="@+id/host"
+        android:layout_width="480dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/host_hint"
+        android:inputType="text" />
+
+    <Button
+        android:id="@+id/connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connect" />
+
+    <EditText
+        android:id="@+id/pin"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/pin_hint"
+        android:inputType="number"
+        android:maxLength="4" />
+
+    <Button
+        android:id="@+id/send_pin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/send_pin" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:textSize="20sp" />
+</LinearLayout>

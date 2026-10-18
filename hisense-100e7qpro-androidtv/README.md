@@ -38,11 +38,22 @@ unlocked boot chain** for *this* VIDAA unit" — and those are the real blockers
 research/   hardware · firmware · github-findings · bootloader · android-compatibility
 architecture/ native-port(A) · hybrid-port(B, recommended) · dual-boot(C) · oem-compatibility(OCL)
 compatibility/ oem-feature-matrix   ← per-feature preservability A/B/C
-tools/      vidaa_probe.py           ← READ-ONLY MQTT diagnostic (safe)
+android/    HisenseOcl               ← OCL implemented: Android TV TvInputService (Hybrid B)
+tools/      vidaa_probe.py (READ-ONLY) · run_android_tests.sh · check_android_build.sh
 poc/        emulation-first PoCs     ← nothing touches the TV flash
 docs/       roadmap · blockers · recovery-plan
 SOURCES.md  every source, with status + limitations
 ```
+
+## What exists as working code (not just docs)
+The Hybrid (B) OEM Compatibility Layer is **implemented and tested off-device** in
+[`android/`](android/): an Android TV `TvInputService` that imports the panel's
+sources (HDMI 1–4 / tuner) as channels and switches inputs + forwards remote keys
+over the TV's MQTT control plane, with a dependency-free MQTT client and a
+backend seam for a future native-HAL path. Verified by a JVM protocol test
+(`tools/run_android_tests.sh`) and a real Android-14 framework type-check
+(`tools/check_android_build.sh`). Not yet run on the TV — the control-plane
+credentials are UNVERIFIED on the E7Q Pro, so probe read-only first.
 
 ## How to read this project
 1. [`SOURCES.md`](SOURCES.md) — the evidence base.
